@@ -30,7 +30,7 @@ export default function RootLayout({
                 collapsedSize={4}
                 collapsible={true}
                 minSize={5}
-                maxSize={10}
+                maxSize={15}
                 onCollapse={() => {
                   setCollapsed(true)
                 }}

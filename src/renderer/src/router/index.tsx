@@ -1,13 +1,14 @@
 import { createRootRoute, createRoute } from '@tanstack/react-router'
-// import { TanStackRouterDevtools } from '@tanstack/router-devtools'
+import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import Graphql from '@renderer/pages/graphql'
+import JsonTool from '@renderer/pages/json'
 import App from '@renderer/App'
 
 const rootRoute = createRootRoute({
   component: () => (
     <>
       <App />
-      {/* <TanStackRouterDevtools /> */}
+      <TanStackRouterDevtools position="bottom-right" />
     </>
   )
 })
@@ -15,15 +16,13 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/graphql',
-  component: () => <Graphql />
+  component: Graphql
 })
 
 const aboutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/about',
-  component: function About() {
-    return <div className="p-2">Hello from About!</div>
-  }
+  path: '/json',
+  component: JsonTool
 })
 const routeTree = rootRoute.addChildren([indexRoute, aboutRoute])
 

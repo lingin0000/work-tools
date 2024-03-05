@@ -23,15 +23,13 @@ export interface SidebarNavProps {
 
 export function SidebarNav(props: SidebarNavProps): JSX.Element {
   const { collapsed, groups } = props
-  const pathname = window.location.pathname
   return (
     <div
       data-collapsed={collapsed}
       className="group flex flex-col h-full justify-between gap-4 py-2 data-[collapsed=true]:py-2 pt-4"
     >
-      <nav className="grid gap-1 px-6 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
+      <nav className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
         {groups?.map((group) => {
-          const pathnameStart = pathname?.split('/')[1]
           return (
             <div key={group.title} className="flex flex-col gap-2 mb-4">
               <h2
@@ -41,21 +39,17 @@ export function SidebarNav(props: SidebarNavProps): JSX.Element {
                 {group.title}
               </h2>
               {group.items.map((item) => {
-                const itemHrefStart = item.href.split('/')[1]
-                const check = pathnameStart === itemHrefStart
                 return collapsed ? (
                   <Tooltip key={item.href} delayDuration={0}>
                     <TooltipTrigger asChild>
                       <Link
                         to={item.href}
+                        activeProps={{
+                          className: buttonVariants({ variant: 'default' })
+                        }}
                         className={cn(
-                          buttonVariants({
-                            variant: check ? 'secondary' : 'ghost',
-                            size: 'icon'
-                          }),
-                          'h-9 w-9',
-                          check &&
-                            'dark:bg-muted dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-white'
+                          buttonVariants({ variant: 'ghost', size: 'sm' }),
+                          'dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white'
                         )}
                       >
                         <item.icon className="h-4 w-4" />
@@ -73,13 +67,21 @@ export function SidebarNav(props: SidebarNavProps): JSX.Element {
                   <Link
                     key={item.href}
                     to={item.href}
+                    activeProps={{
+                      className: cn(
+                        buttonVariants({
+                          variant: 'default',
+                          size: 'sm'
+                        }),
+                        'dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white',
+                        'justify-start'
+                      )
+                    }}
                     className={cn(
                       buttonVariants({
-                        variant: check ? 'secondary' : 'ghost',
+                        variant: 'ghost',
                         size: 'sm'
                       }),
-                      check &&
-                        'dark:bg-muted dark:text-white dark:hover:bg-muted dark:hover:text-white',
                       'justify-start'
                     )}
                   >
