@@ -36,6 +36,8 @@ export class SelectionSetToObject extends BaseToObject {
   }
 
   /** 转换Selection节点 */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
   public transform(node: SelectionSetNode, parentSchemaType?: GraphQLObjectType) {
     return {
       contentType: `{${this.transformSelectionSet(node, parentSchemaType).join('')}}`

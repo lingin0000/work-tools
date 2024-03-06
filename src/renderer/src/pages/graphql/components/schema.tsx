@@ -61,30 +61,33 @@ export function SchemaList({ configId }: { configId: string }) {
       })
   }
 
-  const handleGen = () => {
+  const handleGen = async () => {
     const _path = collectionList.find((item) => item.id === groupId)?.path
-    if (!_path) return
-    fetch('/api/schema', {
-      method: 'POST',
-      body: JSON.stringify({
-        codeList,
-        prefix: `${_path}`,
-        schemaCodePath: '/apis/schema/',
-        typesCodePath: '/apis/type/'
-      }),
-      headers: {
-        'Content-Type': 'application/json'
+    if (!_path) {
+      return
+    }
+
+    window.electron.ipcRenderer.send('graphql-generator', {
+      codeList,
+      prefix: `${_path}`,
+      schemaCodePath: '/apis/schema/',
+      typesCodePath: '/apis/type/'
+    })
+  }
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on('graphql-generator-reply', (_, arg) => {
+      if (arg.success) {
+        toast({ title: '生成成功', description: '文件已生成' })
+      } else {
+        toast({ title: '生成失败', description: arg.message, variant: 'destructive' })
       }
     })
-      .then((res) => {
-        return res.json()
-      })
-      .then((res) => {
-        if (res.success) {
-          toast({ title: '生成成功', description: '文件已生成' })
-        }
-      })
-  }
+
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('graphql-generator-reply')
+    }
+  }, [])
 
   useEffect(() => {
     if (!groupId && collection?.id) {

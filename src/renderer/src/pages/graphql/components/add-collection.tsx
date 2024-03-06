@@ -17,7 +17,6 @@ export function AddCollection({
   functionName?: string
 }) {
   const { collection } = useCollectionList()
-
   const { toast } = useToast()
 
   const handleAddCollection = () => {

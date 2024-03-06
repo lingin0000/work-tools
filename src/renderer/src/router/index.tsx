@@ -15,15 +15,21 @@ const rootRoute = createRootRoute({
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
+  path: '/',
+  component: () => <div>index</div>
+})
+
+const graphqlRoute = createRoute({
+  getParentRoute: () => rootRoute,
   path: '/graphql',
   component: Graphql
 })
 
-const aboutRoute = createRoute({
+const JsonToolRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/json',
   component: JsonTool
 })
-const routeTree = rootRoute.addChildren([indexRoute, aboutRoute])
+const routeTree = rootRoute.addChildren([indexRoute, graphqlRoute, JsonToolRoute])
 
 export { routeTree }

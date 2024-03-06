@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import db from '@/lib/db'
+import db, { Config } from '@/lib/db'
 import { useCollectionList } from '@/store/graphql'
 
 import {
@@ -46,6 +46,8 @@ interface FormValues {
 
 export function Collection({ configId }: { configId: string }) {
   const [open, setOpen] = React.useState(false)
+  const [config, setConfig] = React.useState<Config | null>(null)
+  const [folderOpen, setFolderOpen] = React.useState(false)
   const collectionIdRef = React.useRef<string | null>(null)
 
   const formSchema = z.object({
@@ -54,6 +56,15 @@ export function Collection({ configId }: { configId: string }) {
   })
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema)
+  })
+  const folderFormSchema = z.object({
+    extraPath: z.string().min(1)
+  })
+  const folderForm = useForm<{ extraPath: string }>({
+    resolver: zodResolver(folderFormSchema),
+    defaultValues: {
+      extraPath: '/src/pages'
+    }
   })
 
   const {
@@ -94,39 +105,51 @@ export function Collection({ configId }: { configId: string }) {
     removeCollection(id, configId)
   }
 
-  const handleGen = async () => {
-    const _config = await db.config.get(configId)
-    if (!_config?.registryPath) return
-    const data = await fetch('/api/get-folder', {
-      method: 'POST',
-      body: JSON.stringify({
-        registryPath: _config?.registryPath
-      })
-    }).then((res) => res.json())
-
-    if (data.result) {
-      const _data = data.result.map((item: { name: string; path: string }) => ({
-        name: item.name,
-        createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        path: item.path,
-        id: nanoid(),
-        configId
-      }))
-      setCollectionList(_data)
+  const handleGen = (values: { extraPath: string }) => {
+    if (!config?.registryPath) {
+      return
     }
+    window.electron.ipcRenderer.send('get-folder', {
+      registryPath: config.registryPath,
+      extraPath: values.extraPath
+    })
   }
 
   useEffect(() => {
     initCollectionList(configId)
+    ;(async () => {
+      const data = await db.config.get(configId)
+      if (data) {
+        setConfig(data)
+      }
+    })()
   }, [configId])
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on('get-folder-reply', (_, arg) => {
+      if (arg.success) {
+        const _data = arg.result.map((item: { name: string; path: string }) => ({
+          name: item.name,
+          createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          path: item.path,
+          id: nanoid(),
+          configId
+        }))
+        setCollectionList(_data)
+      }
+    })
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('get-folder-reply')
+    }
+  }, [])
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">集合列表</Button>
       </DialogTrigger>
-      <DialogContent className="p-6 sm:max-w-[1025px]">
+      <DialogContent className="p-6 sm:max-w-[1200px]">
         <div className="mx-auto w-full">
           <DialogHeader className="mb-2">
             <DialogTitle>
@@ -179,9 +202,37 @@ export function Collection({ configId }: { configId: string }) {
                   </Form>
                 </DialogContent>
               </Dialog>
-              <Button variant="outline" className="ml-2" onClick={handleGen}>
-                读取项目文件夹生成集合
-              </Button>
+              <Dialog open={folderOpen} onOpenChange={setFolderOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="ml-2">
+                    读取项目文件夹生成集合
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[625px]">
+                  <DialogHeader>
+                    <DialogTitle>输入基于项目文件夹的路径</DialogTitle>
+                  </DialogHeader>
+                  <Form {...folderForm}>
+                    <form onSubmit={folderForm.handleSubmit(handleGen)} className="space-y-8">
+                      <FormField
+                        control={folderForm.control}
+                        name="extraPath"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>文件夹路径</FormLabel>
+                            <FormDescription>{config?.registryPath}下的文件路径</FormDescription>
+                            <FormControl>
+                              <Input {...field} prefix={config?.registryPath} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit">保存</Button>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
               <Button variant="outline" className="ml-2" onClick={removeCollectionList}>
                 删除所有集合
               </Button>

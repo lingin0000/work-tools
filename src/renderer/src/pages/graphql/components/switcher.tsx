@@ -17,7 +17,7 @@ import {
 import { Dialog } from '@/components/ui/dialog'
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { GraphqlOptionsProps } from '../page'
+import { type GraphqlOptionsProps } from '../index'
 
 export type Option = {
   label: string

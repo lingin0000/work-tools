@@ -1,7 +1,7 @@
 import generator from './generator'
 import { format } from 'prettier/standalone'
 import * as prettierPluginGraphql from 'prettier/plugins/graphql'
-import * as prettierPluginBabel from 'prettier/parser-babel'
+import * as prettierPluginBabel from 'prettier/plugins/babel'
 import * as prettierPluginTypescript from 'prettier/plugins/typescript'
 import * as prettierPluginEstree from 'prettier/plugins/estree'
 import { scalarsType } from './config'

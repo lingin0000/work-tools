@@ -191,7 +191,6 @@ const Graphql = () => {
         </TabsList>
         <Button
           className="ml-2"
-          variant="secondary"
           type="submit"
           disabled={loading}
           onClick={() => {

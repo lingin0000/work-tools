@@ -17,6 +17,8 @@ export class VariablesToObject extends BaseToObject {
   private globalType: Map<string, { status: 'pending' | 'success'; type?: string }> = new Map()
 
   /** 转换入参类型 */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-expect-error
   public transform(variableDefinitionNode: VariableDefinitionNode) {
     const variableType = this.getVariableSchemaType(variableDefinitionNode.type)
 
