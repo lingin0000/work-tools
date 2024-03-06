@@ -1,4 +1,4 @@
-import { SidebarNavProps } from '@renderer/components/ui/sidebar-nav'
+import { SidebarNavProps } from '@/components/ui/sidebar-nav'
 import { GitPullRequestArrow, PenToolIcon } from 'lucide-react'
 
 export const menu: SidebarNavProps['groups'] = [

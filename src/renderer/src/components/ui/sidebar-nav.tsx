@@ -1,8 +1,8 @@
 import { LucideIcon } from 'lucide-react'
-import { ThemeToggle } from '@renderer/components/ui/theme-button'
-import { cn } from '@renderer/lib/utils'
-import { buttonVariants } from '@renderer/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip'
+import { ThemeToggle } from '@/components/ui/theme-button'
+import { cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Link } from '@tanstack/react-router'
 
 interface SidebarNavItem {

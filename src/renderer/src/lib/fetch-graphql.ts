@@ -1,117 +1,90 @@
-import axios from "axios";
-import { buildClientSchema } from "graphql";
+import axios from 'axios'
+import { buildClientSchema } from 'graphql'
 import type {
   GraphQLSchema,
   IntrospectionObjectType,
   IntrospectionQuery,
-  IntrospectionType,
-} from "graphql";
-import { http, invoke } from "@tauri-apps/api";
-import isTauri from "./isTauri";
+  IntrospectionType
+} from 'graphql'
 export interface DataSource {
-  schema: GraphQLSchema;
+  schema: GraphQLSchema
 }
 
 class RequestGraphql {
-  private directives: IntrospectionQuery["__schema"]["directives"];
+  private directives: IntrospectionQuery['__schema']['directives']
 
-  private mutationType: IntrospectionQuery["__schema"]["mutationType"];
+  private mutationType: IntrospectionQuery['__schema']['mutationType']
 
-  private queryType: IntrospectionQuery["__schema"]["queryType"];
+  private queryType: IntrospectionQuery['__schema']['queryType']
 
-  private subscriptionType: IntrospectionQuery["__schema"]["subscriptionType"];
+  private subscriptionType: IntrospectionQuery['__schema']['subscriptionType']
 
-  private description: IntrospectionQuery["__schema"]["description"];
+  private description: IntrospectionQuery['__schema']['description']
 
-  private types: IntrospectionQuery["__schema"]["types"];
+  private types: IntrospectionQuery['__schema']['types']
 
-  private schemaMap: Record<string, DataSource>;
+  private schemaMap: Record<string, DataSource>
 
   private params: {
-    operationName: "IntrospectionQuery";
-    query: string;
-  };
+    operationName: 'IntrospectionQuery'
+    query: string
+  }
 
   constructor() {
-    this.directives = [];
-    this.mutationType = {} as any;
-    this.queryType = {} as any;
-    this.subscriptionType = {} as any;
-    this.description = null;
-    this.types = [];
-    this.schemaMap = {};
+    this.directives = []
+    this.mutationType = {} as any
+    this.queryType = {} as any
+    this.subscriptionType = {} as any
+    this.description = null
+    this.types = []
+    this.schemaMap = {}
     this.params = {
-      operationName: "IntrospectionQuery",
+      operationName: 'IntrospectionQuery',
       query:
-        "\n    query IntrospectionQuery {\n      __schema {\n        description\n        queryType { name\n kind }\n        mutationType { name\n kind }\n        subscriptionType { name\n kind }\n        types {\n          ...FullType\n        }\n        directives {\n          name\n          description\n          \n          locations\n          args {\n            ...InputValue\n          }\n        }\n      }\n    }\n\n    fragment FullType on __Type {\n      kind\n      name\n      description\n      \n      fields(includeDeprecated: true) {\n        name\n        description\n        args {\n          ...InputValue\n        }\n        type {\n          ...TypeRef\n        }\n        isDeprecated\n        deprecationReason\n      }\n      inputFields {\n        ...InputValue\n      }\n      interfaces {\n        ...TypeRef\n      }\n      enumValues(includeDeprecated: true) {\n        name\n        description\n        isDeprecated\n        deprecationReason\n      }\n      possibleTypes {\n        ...TypeRef\n      }\n    }\n\n    fragment InputValue on __InputValue {\n      name\n      description\n      type { ...TypeRef }\n      defaultValue\n      \n      \n    }\n\n    fragment TypeRef on __Type {\n      kind\n      name\n      ofType {\n        kind\n        name\n        ofType {\n          kind\n          name\n          ofType {\n            kind\n            name\n            ofType {\n              kind\n              name\n              ofType {\n                kind\n                name\n                ofType {\n                  kind\n                  name\n                  ofType {\n                    kind\n                    name\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ",
-    };
+        '\n    query IntrospectionQuery {\n      __schema {\n        description\n        queryType { name\n kind }\n        mutationType { name\n kind }\n        subscriptionType { name\n kind }\n        types {\n          ...FullType\n        }\n        directives {\n          name\n          description\n          \n          locations\n          args {\n            ...InputValue\n          }\n        }\n      }\n    }\n\n    fragment FullType on __Type {\n      kind\n      name\n      description\n      \n      fields(includeDeprecated: true) {\n        name\n        description\n        args {\n          ...InputValue\n        }\n        type {\n          ...TypeRef\n        }\n        isDeprecated\n        deprecationReason\n      }\n      inputFields {\n        ...InputValue\n      }\n      interfaces {\n        ...TypeRef\n      }\n      enumValues(includeDeprecated: true) {\n        name\n        description\n        isDeprecated\n        deprecationReason\n      }\n      possibleTypes {\n        ...TypeRef\n      }\n    }\n\n    fragment InputValue on __InputValue {\n      name\n      description\n      type { ...TypeRef }\n      defaultValue\n      \n      \n    }\n\n    fragment TypeRef on __Type {\n      kind\n      name\n      ofType {\n        kind\n        name\n        ofType {\n          kind\n          name\n          ofType {\n            kind\n            name\n            ofType {\n              kind\n              name\n              ofType {\n                kind\n                name\n                ofType {\n                  kind\n                  name\n                  ofType {\n                    kind\n                    name\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  '
+    }
   }
 
   private getOneSchema = async (path: string) => {
-    let data;
-    if (isTauri()) {
-      invoke("fetch", {
-        url: path,
-        body: JSON.stringify(this.params),
-      });
-      http
-        .fetch(path, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // 常规的json格式请求体发送
-          body: http.Body.json(this.params),
-          responseType: 1,
-        })
-        .then((response) => {
-          console.log('🚀 ~ RequestGraphql ~ response:', response);
-          data = response.data;
-        });
-    } else {
-      const response = await axios({
-        url: path,
-        method: "POST",
-        data: {
-          operationName: "IntrospectionQuery",
-          query:
-            "\n    query IntrospectionQuery {\n      __schema {\n        description\n        queryType { name\n kind }\n        mutationType { name\n kind }\n        subscriptionType { name\n kind }\n        types {\n          ...FullType\n        }\n        directives {\n          name\n          description\n          \n          locations\n          args {\n            ...InputValue\n          }\n        }\n      }\n    }\n\n    fragment FullType on __Type {\n      kind\n      name\n      description\n      \n      fields(includeDeprecated: true) {\n        name\n        description\n        args {\n          ...InputValue\n        }\n        type {\n          ...TypeRef\n        }\n        isDeprecated\n        deprecationReason\n      }\n      inputFields {\n        ...InputValue\n      }\n      interfaces {\n        ...TypeRef\n      }\n      enumValues(includeDeprecated: true) {\n        name\n        description\n        isDeprecated\n        deprecationReason\n      }\n      possibleTypes {\n        ...TypeRef\n      }\n    }\n\n    fragment InputValue on __InputValue {\n      name\n      description\n      type { ...TypeRef }\n      defaultValue\n      \n      \n    }\n\n    fragment TypeRef on __Type {\n      kind\n      name\n      ofType {\n        kind\n        name\n        ofType {\n          kind\n          name\n          ofType {\n            kind\n            name\n            ofType {\n              kind\n              name\n              ofType {\n                kind\n                name\n                ofType {\n                  kind\n                  name\n                  ofType {\n                    kind\n                    name\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ",
-        },
-      });
-      data = response.data;
-    }
-
+    const { data } = await axios({
+      url: path,
+      method: 'POST',
+      data: {
+        operationName: 'IntrospectionQuery',
+        query:
+          '\n    query IntrospectionQuery {\n      __schema {\n        description\n        queryType { name\n kind }\n        mutationType { name\n kind }\n        subscriptionType { name\n kind }\n        types {\n          ...FullType\n        }\n        directives {\n          name\n          description\n          \n          locations\n          args {\n            ...InputValue\n          }\n        }\n      }\n    }\n\n    fragment FullType on __Type {\n      kind\n      name\n      description\n      \n      fields(includeDeprecated: true) {\n        name\n        description\n        args {\n          ...InputValue\n        }\n        type {\n          ...TypeRef\n        }\n        isDeprecated\n        deprecationReason\n      }\n      inputFields {\n        ...InputValue\n      }\n      interfaces {\n        ...TypeRef\n      }\n      enumValues(includeDeprecated: true) {\n        name\n        description\n        isDeprecated\n        deprecationReason\n      }\n      possibleTypes {\n        ...TypeRef\n      }\n    }\n\n    fragment InputValue on __InputValue {\n      name\n      description\n      type { ...TypeRef }\n      defaultValue\n      \n      \n    }\n\n    fragment TypeRef on __Type {\n      kind\n      name\n      ofType {\n        kind\n        name\n        ofType {\n          kind\n          name\n          ofType {\n            kind\n            name\n            ofType {\n              kind\n              name\n              ofType {\n                kind\n                name\n                ofType {\n                  kind\n                  name\n                  ofType {\n                    kind\n                    name\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  '
+      }
+    })
     if (data?.data?.__schema) {
-      const { __schema } = data.data;
+      const { __schema } = data.data
 
-      const { queryType, mutationType, subscriptionType, types, directives } =
-        __schema;
-      this.queryType = { ...this.queryType, ...queryType };
-      this.mutationType = { ...this.mutationType, ...mutationType };
+      const { queryType, mutationType, subscriptionType, types, directives } = __schema
+      this.queryType = { ...this.queryType, ...queryType }
+      this.mutationType = { ...this.mutationType, ...mutationType }
       this.subscriptionType = {
         ...this.subscriptionType,
-        ...subscriptionType,
-      };
-      this.types = [...this.types, ...types];
-      this.directives = [...this.directives, ...directives];
-      this.description = __schema.description;
+        ...subscriptionType
+      }
+      this.types = [...this.types, ...types]
+      this.directives = [...this.directives, ...directives]
+      this.description = __schema.description
 
-      let schema;
+      let schema
       try {
         schema = buildClientSchema({
-          __schema,
-        });
+          __schema
+        })
       } catch (e) {
-        return { error: "解析出错", url: path, schema: undefined };
+        return { error: '解析出错', url: path, schema: undefined }
       }
       return {
         schema,
-        error: false,
-      };
+        error: false
+      }
     } else {
-      return { error: "请求出错", url: path, schema: undefined };
+      return { error: '请求出错', url: path, schema: undefined }
     }
-  };
+  }
 
   /**
    * @description: 获取数据源
@@ -120,9 +93,9 @@ class RequestGraphql {
    */
   public genSource = async (paths: string[]) => {
     for (const path of paths) {
-      const { error, schema } = await this.getOneSchema(path);
+      const { error, schema } = await this.getOneSchema(path)
       if (!error && schema) {
-        this.schemaMap[path] = { schema };
+        this.schemaMap[path] = { schema }
       }
     }
 
@@ -130,35 +103,35 @@ class RequestGraphql {
      * 下方合并去重规则均为后重复项覆盖前者
      */
     /** 合并去除同名types */
-    const indexMap = new Map<string, number>();
+    const indexMap = new Map<string, number>()
     this.types = this.types.reduce((result, item, index) => {
-      const itemName = item.name;
+      const itemName = item.name
       if (indexMap.has(itemName)) {
-        const existIndex = indexMap.get(itemName)!;
+        const existIndex = indexMap.get(itemName)!
         switch (itemName) {
-          case "Query":
-          case "Mutation":
+          case 'Query':
+          case 'Mutation':
             /** 合并Query Mutation 里面的fields，并去重 */
-            const existItem = result[existIndex] as IntrospectionObjectType;
-            const curItem = item as IntrospectionObjectType;
+            const existItem = result[existIndex] as IntrospectionObjectType
+            const curItem = item as IntrospectionObjectType
             result[existIndex] = {
               ...item,
               fields: existItem.fields.reduce((result, item) => {
                 if (result.some((i) => i.name === item.name)) {
-                  return result;
+                  return result
                 }
-                return [...result, item];
-              }, curItem.fields ?? []),
-            } as IntrospectionObjectType;
-            return result;
+                return [...result, item]
+              }, curItem.fields ?? [])
+            } as IntrospectionObjectType
+            return result
           default:
-            result[existIndex] = item;
-            return result;
+            result[existIndex] = item
+            return result
         }
       }
-      indexMap.set(itemName, index);
-      return [...result, item];
-    }, [] as IntrospectionType[]);
+      indexMap.set(itemName, index)
+      return [...result, item]
+    }, [] as IntrospectionType[])
 
     const __source = {
       __schema: {
@@ -166,31 +139,29 @@ class RequestGraphql {
         queryType: this.queryType,
         mutationType: this.mutationType,
         subscriptionType:
-          Object.keys(this.subscriptionType as object).length === 0
-            ? null
-            : this.subscriptionType,
+          Object.keys(this.subscriptionType as object).length === 0 ? null : this.subscriptionType,
         types: this.types,
-        directives: this.directives,
-      },
-    };
-    let mergeSchema;
+        directives: this.directives
+      }
+    }
+    let mergeSchema
     try {
       mergeSchema = buildClientSchema(__source, {
-        assumeValid: true,
-      });
+        assumeValid: true
+      })
     } catch {
       return {
-        error: "解析出错",
+        error: '解析出错',
         schemaMap: this.schemaMap,
-        mergeSchema: undefined,
-      };
+        mergeSchema: undefined
+      }
     }
     return {
       schemaMap: this.schemaMap,
       mergeSchema,
-      error: false,
-    };
-  };
+      error: false
+    }
+  }
 }
 
-export default RequestGraphql;
+export default RequestGraphql

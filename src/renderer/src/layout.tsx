@@ -1,17 +1,13 @@
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup
-} from '@renderer/components/ui/resizable'
-import { cn } from '@renderer/lib/utils'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from './components/ui/resizable'
+import { cn } from './lib/utils'
 import './globals.css'
 import { useState } from 'react'
-import { SidebarNav } from '@renderer/components/ui/sidebar-nav'
-import { TooltipProvider } from '@renderer/components/ui/tooltip'
-import { ScrollArea } from '@renderer/components/ui/scroll-area'
-import { Toaster } from '@renderer/components/ui/toaster'
-import { ThemeProvider } from '@renderer/components/provider/theme-provider'
-import { menu } from './lib/menu'
+import { SidebarNav } from '@/components/ui/sidebar-nav'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Toaster } from '@/components/ui/toaster'
+import { ThemeProvider } from '@/components/provider/theme-provider'
+import { menu } from '@/lib/menu'
 
 export default function RootLayout({
   children

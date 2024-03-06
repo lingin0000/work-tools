@@ -1,8 +1,8 @@
 import { createRootRoute, createRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
-import Graphql from '@renderer/pages/graphql'
-import JsonTool from '@renderer/pages/json'
-import App from '@renderer/App'
+import Graphql from '../pages/graphql'
+import JsonTool from '../pages/json'
+import App from '../App'
 
 const rootRoute = createRootRoute({
   component: () => (
