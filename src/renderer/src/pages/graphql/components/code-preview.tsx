@@ -7,11 +7,13 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/componen
 export function CodePreview({
   schemaCode,
   typesCode,
-  functionName
+  functionName,
+  cnFunctionName
 }: {
   schemaCode: string
   typesCode: string
   functionName: string
+  cnFunctionName: string
 }) {
   const { toast } = useToast()
   const handleCopyCode = (code: string) => {
@@ -28,6 +30,7 @@ export function CodePreview({
               schemaCode={schemaCode}
               typesCode={typesCode}
               functionName={functionName}
+              cnFunctionName={cnFunctionName}
             />
           </CardTitle>
         </CardHeader>

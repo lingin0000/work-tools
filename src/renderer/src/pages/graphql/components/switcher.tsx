@@ -32,7 +32,7 @@ interface TeamSwitcherProps {
   options?: GraphqlOptionsProps[]
   className?: string
   value?: string
-  onChange?: (value: string) => void
+  onChange?: (value: string, label: string) => void
 }
 
 export default function Switcher({ className, options = [], value, onChange }: TeamSwitcherProps) {
@@ -79,7 +79,7 @@ export default function Switcher({ className, options = [], value, onChange }: T
                         <CommandItem
                           key={option.value}
                           onSelect={() => {
-                            onChange?.(option.value)
+                            onChange?.(option.value, option.label)
                             setSelectedLabel(`${option.value}-${option.label}`)
                             setOpen(false)
                           }}

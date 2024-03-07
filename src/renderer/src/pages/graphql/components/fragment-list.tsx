@@ -35,7 +35,7 @@ export interface FragmentListProps {
     fields: TreeItem[]
   }[]
   onDelete: (id: string) => void
-  onGenCode: (documents: string[], code: string, functionName: string) => void
+  onGenCode: (documents: string[], code: string, functionName: string, cnName: string) => void
 }
 
 interface FormValues {
@@ -47,6 +47,7 @@ export default function FragmentList({ dataSource = [], onDelete, onGenCode }: F
   const [open, setOpen] = useState(false)
   const formSchema = z.object({
     name: z.string().min(1),
+    cnName: z.string().min(1),
     ...dataSource.reduce(
       (acc, item) => {
         acc[item.functionName] = z.string().min(0)
@@ -77,57 +78,73 @@ export default function FragmentList({ dataSource = [], onDelete, onGenCode }: F
       }
     })
     const { code, query } = queryListTemplate(values.name, fragments)
-    onGenCode([query], code, values.name)
+    onGenCode([query], code, values.name, values.cnName)
     setOpen(false)
   }
   return (
     <Card className="w-full" hidden={dataSource.length === 0}>
       <CardHeader>
         <CardTitle>
-          fragment列表{' '}
+          fragment列表
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="ml-2">生成代码</Button>
             </DialogTrigger>
             <DialogContent className="p-6 sm:max-w-[825px]">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="flex flex-wrap gap-4 w-full"
+                >
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>方法名称</FormLabel>
-                        <FormDescription>这个请求的方法名称</FormDescription>
                         <FormControl>
                           <Input {...field} className="w-80" />
                         </FormControl>
+                        <FormDescription>这个请求的方法名称</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <div className="flex flex-wrap gap-4 w-full">
-                    {dataSource.map((item) => {
-                      return (
-                        <FormField
-                          defaultValue=""
-                          key={item.functionName}
-                          control={form.control}
-                          name={item.functionName}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{item.functionName}</FormLabel>
-                              <FormDescription>重命名这个字段</FormDescription>
-                              <FormControl>
-                                <Input {...field} className="w-80" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )
-                    })}
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="cnName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>方法中文名称</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="w-80" />
+                        </FormControl>
+                        <FormDescription>这个请求方法的中文名称</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {dataSource.map((item) => {
+                    return (
+                      <FormField
+                        defaultValue=""
+                        key={item.functionName}
+                        control={form.control}
+                        name={item.functionName}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{item.functionName}</FormLabel>
+                            <FormDescription>重命名这个字段</FormDescription>
+                            <FormControl>
+                              <Input {...field} className="w-80" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )
+                  })}
+
                   <div className=" w-full text-right">
                     <Button type="submit">确定</Button>
                   </div>

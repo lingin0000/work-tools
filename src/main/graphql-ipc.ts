@@ -1,10 +1,10 @@
 import { ipcMain } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { genSchemaIndex } from './gen-schema-index'
 /**
  * 生成graphql代码
  */
-
 function graphqlGenerator() {
   ipcMain.on('graphql-generator', (event, arg) => {
     // 在这里处理 POST 请求
@@ -25,9 +25,11 @@ function graphqlGenerator() {
         const { name, schemaCode, typesCode } = item
         const _schemaCodePath = path.join(prefix, schemaCodePath, name)
         const _typesCodePath = path.join(prefix, typesCodePath, name)
-        fs.appendFileSync(`${_schemaCodePath}.ts`, schemaCode, 'utf-8')
-        fs.appendFileSync(`${_typesCodePath}.ts`, typesCode, 'utf-8')
+        fs.writeFileSync(`${_schemaCodePath}.ts`, schemaCode, 'utf-8')
+        fs.writeFileSync(`${_typesCodePath}.ts`, typesCode, 'utf-8')
       })
+      genSchemaIndex(prefix, codeList)
+
       event.reply('graphql-generator-reply', { success: true })
     } catch (e) {
       event.reply('graphql-generator-reply', { success: false, message: (e as any).message })

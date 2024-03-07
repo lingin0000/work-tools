@@ -1,54 +1,52 @@
-import { GraphQLInputType } from "graphql/type";
-import { loopTree2String, TreeItem } from "../graphql-convert";
+import { GraphQLInputType } from 'graphql/type'
+import { loopTree2String, TreeItem } from '../graphql-convert'
 
 export const queryTemplate = (
   name: string,
   args: {
-    name: string;
-    value?: string | number;
-    type?: GraphQLInputType;
+    name: string
+    value?: string | number
+    type?: GraphQLInputType
   }[],
   fields: TreeItem[]
 ): {
-  code: string;
-  query: string;
+  code: string
+  query: string
 } => {
-  const start = "export const " + name + "Schema = gql`";
-  const end = "`";
-  let queryArgs = "";
-  let queryFunArgs = "";
+  const start = 'export const ' + name + 'Schema = gql`'
+  const end = '`'
+  let queryArgs = ''
+  let queryFunArgs = ''
   args.forEach((arg) => {
     if (arg.value) {
-      const value = Number.isNaN(Number(arg.value))
-        ? `"${arg.value}"`
-        : arg.value;
-      queryFunArgs += `${arg.name}: ${value},`;
+      const value = Number.isNaN(Number(arg.value)) ? `"${arg.value}"` : arg.value
+      queryFunArgs += `${arg.name}: ${value},`
     } else {
-      queryArgs += `$${arg.name}: ${arg.type},`;
-      queryFunArgs += `${arg.name}: $${arg.name},`;
+      queryArgs += `$${arg.name}: ${arg.type},`
+      queryFunArgs += `${arg.name}: $${arg.name},`
     }
-  });
+  })
   if (fields.length === 0) {
     const query = `query ${name}
-      ${queryArgs ? `(${queryArgs})` : ""}
+      ${queryArgs ? `(${queryArgs})` : ''}
      {
-      ${name}${!!queryFunArgs.length ? `(${queryFunArgs})` : ""} 
-  }`;
+      ${name}${queryFunArgs.length ? `(${queryFunArgs})` : ''}
+  }`
     return {
       code: start + query + end,
-      query,
-    };
+      query
+    }
   }
 
-  const fieldsStr = loopTree2String(fields);
+  const fieldsStr = loopTree2String(fields)
 
   const query = `query ${name}
-    ${queryArgs ? `(${queryArgs})` : ""}
+    ${queryArgs ? `(${queryArgs})` : ''}
    {
-    ${name}${!!queryFunArgs.length ? `(${queryFunArgs})` : ""} {${fieldsStr}}
-  }`;
+    ${name}${queryFunArgs.length ? `(${queryFunArgs})` : ''} {${fieldsStr}}
+  }`
   return {
     code: start + query + end,
-    query,
-  };
-};
+    query
+  }
+}

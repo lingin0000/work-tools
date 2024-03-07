@@ -9,24 +9,27 @@ import { nanoid } from 'nanoid'
 export function AddCollection({
   schemaCode,
   typesCode,
-  functionName
+  functionName,
+  cnFunctionName
 }: {
   disabled?: boolean
   schemaCode?: string
   typesCode?: string
   functionName?: string
+  cnFunctionName?: string
 }) {
   const { collection } = useCollectionList()
   const { toast } = useToast()
 
   const handleAddCollection = () => {
-    if (!functionName || !typesCode || !collection || !schemaCode) {
+    if (!functionName || !typesCode || !collection || !schemaCode || !cnFunctionName) {
       return
     }
     db.schema
       .add({
         id: nanoid(),
         name: functionName,
+        cnName: cnFunctionName,
         createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
         updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
         groupId: collection.id,
@@ -52,7 +55,7 @@ export function AddCollection({
   return (
     <Button
       onClick={handleAddCollection}
-      disabled={!functionName || !typesCode || !collection || !schemaCode}
+      disabled={!functionName || !typesCode || !collection || !schemaCode || !cnFunctionName}
     >
       添加到集合
     </Button>

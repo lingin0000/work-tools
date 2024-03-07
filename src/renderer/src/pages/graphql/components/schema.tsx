@@ -37,6 +37,7 @@ export function SchemaList({ configId }: { configId: string }) {
   const [codeList, setCodeList] = React.useState<Schema[]>([])
   const [groupId, setGroupId] = React.useState<string>()
   const { collectionList, collection } = useCollectionList()
+  const [open, setOpen] = React.useState(false)
 
   const handleFetchSchema = (groupId: string) => {
     setGroupId(groupId)
@@ -90,13 +91,15 @@ export function SchemaList({ configId }: { configId: string }) {
   }, [])
 
   useEffect(() => {
-    if (!groupId && collection?.id) {
+    console.log('collection', open)
+    console.log('groupId', groupId)
+    if (collection?.id && open) {
       handleFetchSchema(collection.id)
     }
-  }, [collection?.id, groupId])
+  }, [collection?.id, open])
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">方法列表</Button>
       </DialogTrigger>

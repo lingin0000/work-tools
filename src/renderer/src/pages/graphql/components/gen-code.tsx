@@ -60,8 +60,11 @@ export function GenCode({
     description?: string | null
   }>()
   const [functionName, setFunctionName] = useState<string>('')
+  const [cnFunctionName, setCnFunctionName] = useState<string>('')
   const [actionType, setActionType] = useState<'single' | 'multiple'>()
-  const [multiFunctionName, setMultiFunctionName] = useState<string>('') // [functionName, functionName, ...
+  const [multiFunctionName, setMultiFunctionName] = useState<string>('')
+  const [multiCnFunctionName, setMultiCnFunctionName] = useState<string>('')
+
   const [selectedFields, setSelectedFields] = useState<{
     [key: string]: {
       checked: boolean
@@ -70,7 +73,7 @@ export function GenCode({
     }
   }>({})
 
-  const [fragments, setFragments] = useState<FragmentListProps['dataSource']>([]) // [gqlFragment, gqlFragment, ...
+  const [fragments, setFragments] = useState<FragmentListProps['dataSource']>([])
 
   // 获取参数和字段
   const getArgAndFields = () => {
@@ -140,7 +143,12 @@ export function GenCode({
     setActionType('single')
   }
 
-  const handleGenCodes = async (documents: string[], code: string, _functionName: string) => {
+  const handleGenCodes = async (
+    documents: string[],
+    code: string,
+    _functionName: string,
+    _cnFunctionName: string
+  ) => {
     let _code = `import { gql } from "${config?.gql}";\n\n`
     _code += code
     const prettierEdCode = await prettierCode(_code)
@@ -151,12 +159,14 @@ export function GenCode({
     })
     setSchemaCode(prettierEdCode)
     setMultiFunctionName(_functionName)
+    setMultiCnFunctionName(_cnFunctionName)
     setActionType('multiple')
     setTypesCode(_typesCode)
   }
 
-  const handleChange = (value: string) => {
+  const handleChange = (value: string, label: string) => {
     setFunctionName(value)
+    setCnFunctionName(label)
     const field = graphQLFields?.[value]
     if (!field) return
     setGraphQLFieldData({
@@ -198,6 +208,8 @@ export function GenCode({
     setFragments([])
     setSelectedFields({})
     setGraphQLFieldData(undefined)
+    setMultiCnFunctionName('')
+    setCnFunctionName('')
   }, [configId])
 
   return (
@@ -248,6 +260,7 @@ export function GenCode({
         schemaCode={schemaCode}
         typesCode={typesCode}
         functionName={actionType === 'single' ? functionName : multiFunctionName}
+        cnFunctionName={actionType === 'single' ? cnFunctionName : multiCnFunctionName}
       />
     </Fragment>
   )
