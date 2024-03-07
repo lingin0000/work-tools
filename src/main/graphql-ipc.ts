@@ -28,7 +28,7 @@ function graphqlGenerator() {
         fs.writeFileSync(`${_schemaCodePath}.ts`, schemaCode, 'utf-8')
         fs.writeFileSync(`${_typesCodePath}.ts`, typesCode, 'utf-8')
       })
-      genSchemaIndex(prefix, codeList)
+      genSchemaIndex(prefix, path.join(prefix, schemaCodePath), codeList)
 
       event.reply('graphql-generator-reply', { success: true })
     } catch (e) {

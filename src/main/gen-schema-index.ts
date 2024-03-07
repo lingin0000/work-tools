@@ -19,19 +19,13 @@ export const prettierCode = (code: string, options?: Options) => {
   })
 }
 
-const genSchemaIndex = async (
-  prefix,
-  codeList: {
-    id: string
-    name: string
-    cnName: string
-    schemaCode: string
-    typesCode: string
-  }[]
-) => {
+const genSchemaIndex = async (prefix, schemaCodePath, codeList) => {
   try {
-    const { importSchema, importTypes, defineFunction } = codeList.reduce(
-      (acc, { name }) => {
+    // 读取schemaCodePath目录
+    const schemaFiles = fs.readdirSync(schemaCodePath)
+    const { importSchema, importTypes, defineFunction } = schemaFiles.reduce(
+      (acc, file) => {
+        const name = file.split('.')[0]
         acc.importSchema += `import { ${name}Schema } from './schema/${name}';\n`
         const uppercaseName = toUppercaseFirstLetter(name)
         const ResultType = `T${uppercaseName}Res`
@@ -73,8 +67,11 @@ const genSchemaIndex = async (
     const exportSchema = `const useApi = () => {
       ${defineFunction}
       return {
-        ${codeList
-          .map(({ name, cnName }) => {
+        ${schemaFiles
+          .map((file) => {
+            const name = file.split('.')[0]
+            const cnName =
+              codeList.find((item) => item.name === name).cnName || toUppercaseFirstLetter(name)
             return `/**${cnName} */\n ${name},`
           })
           .join('\n')}
