@@ -29,18 +29,22 @@ import {
 import { useEffect } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useCollectionList } from '@/store/graphql'
+import { useCollectionList, useDataSource } from '@/store/graphql'
 import { useToast } from '@/components/ui/use-toast'
 
 export function SchemaList({ configId }: { configId: string }) {
   const { toast } = useToast()
   const [codeList, setCodeList] = React.useState<Schema[]>([])
+  const [collectionPath, setCollectionPath] = React.useState<string>()
   const [groupId, setGroupId] = React.useState<string>()
   const { collectionList, collection } = useCollectionList()
+  const { mergeSchema } = useDataSource()
   const [open, setOpen] = React.useState(false)
 
   const handleFetchSchema = (groupId: string) => {
     setGroupId(groupId)
+    const _path = collectionList.find((item) => item.id === groupId)?.path
+    setCollectionPath(_path)
     db.schema
       .filter((item) => item.configId === configId && item.groupId === groupId)
       .toArray()
@@ -62,7 +66,7 @@ export function SchemaList({ configId }: { configId: string }) {
       })
   }
 
-  const handleGen = async () => {
+  const handleGenDefine = async () => {
     const _path = collectionList.find((item) => item.id === groupId)?.path
     if (!_path) {
       return
@@ -76,6 +80,30 @@ export function SchemaList({ configId }: { configId: string }) {
     })
   }
 
+  const handleGenApi = async () => {
+    const _path = collectionList.find((item) => item.id === groupId)?.path
+    if (!_path) {
+      return
+    }
+    const schemaMap = {
+      ...mergeSchema.getQueryType()?.getFields(),
+      ...mergeSchema.getMutationType()?.getFields(),
+      ...mergeSchema.getSubscriptionType()?.getFields()
+    }
+
+    const functionMap = {}
+    for (const key in schemaMap) {
+      const item = schemaMap[key]
+      functionMap[key] = item.description
+    }
+
+    window.electron.ipcRenderer.send('api-generator', {
+      prefix: `${_path}`,
+      schemaCodePath: `/apis/schema/`,
+      functionMap
+    })
+  }
+
   useEffect(() => {
     window.electron.ipcRenderer.on('graphql-generator-reply', (_, arg) => {
       if (arg.success) {
@@ -85,14 +113,21 @@ export function SchemaList({ configId }: { configId: string }) {
       }
     })
 
+    window.electron.ipcRenderer.on('api-generator-reply', (_, arg) => {
+      if (arg.success) {
+        toast({ title: '生成成功', description: '文件已生成' })
+      } else {
+        toast({ title: '生成失败', description: arg.message, variant: 'destructive' })
+      }
+    })
+
     return () => {
       window.electron.ipcRenderer.removeAllListeners('graphql-generator-reply')
+      window.electron.ipcRenderer.removeAllListeners('get-files-reply')
     }
   }, [])
 
   useEffect(() => {
-    console.log('collection', open)
-    console.log('groupId', groupId)
     if (collection?.id && open) {
       handleFetchSchema(collection.id)
     }
@@ -124,8 +159,10 @@ export function SchemaList({ configId }: { configId: string }) {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <Button onClick={handleGen}>生成文件</Button>
+            <Button onClick={handleGenDefine}>生成schema/types</Button>
+            <Button onClick={handleGenApi}>生成api</Button>
           </div>
+          <div className="mb-4">路径：{collectionPath}</div>
           <ScrollArea className=" h-96">
             <Table>
               <TableHeader>

@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, Tray } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { graphqlGenerator, getFolder } from './graphql-ipc'
+import { graphqlGenerator, getFolder, apiGenerator } from './graphql-ipc'
 import { json2xml, json2yaml } from './json-pic'
 
 function createWindow(): void {
@@ -63,6 +63,7 @@ app.whenReady().then(() => {
   })
 
   getFolder()
+  apiGenerator()
   graphqlGenerator()
   json2xml()
   json2yaml()

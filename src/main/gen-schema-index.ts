@@ -19,7 +19,7 @@ export const prettierCode = (code: string, options?: Options) => {
   })
 }
 
-const genSchemaIndex = async (prefix, schemaCodePath, codeList) => {
+const genSchemaIndex = async (prefix, schemaCodePath, functionMap) => {
   try {
     // 读取schemaCodePath目录
     const schemaFiles = fs.readdirSync(schemaCodePath)
@@ -70,8 +70,7 @@ const genSchemaIndex = async (prefix, schemaCodePath, codeList) => {
         ${schemaFiles
           .map((file) => {
             const name = file.split('.')[0]
-            const cnName =
-              codeList.find((item) => item.name === name).cnName || toUppercaseFirstLetter(name)
+            const cnName = functionMap[name] || name
             return `/**${cnName} */\n ${name},`
           })
           .join('\n')}

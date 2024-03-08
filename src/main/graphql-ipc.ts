@@ -28,11 +28,32 @@ function graphqlGenerator() {
         fs.writeFileSync(`${_schemaCodePath}.ts`, schemaCode, 'utf-8')
         fs.writeFileSync(`${_typesCodePath}.ts`, typesCode, 'utf-8')
       })
-      genSchemaIndex(prefix, path.join(prefix, schemaCodePath), codeList)
 
       event.reply('graphql-generator-reply', { success: true })
     } catch (e) {
       event.reply('graphql-generator-reply', { success: false, message: (e as any).message })
+    }
+  })
+}
+
+function apiGenerator() {
+  ipcMain.on('api-generator', (event, arg) => {
+    try {
+      const { prefix, schemaCodePath, functionMap } = arg
+      const _schemaCodePath = path.join(prefix, schemaCodePath)
+
+      // 读取目录
+      const files = fs.readdirSync(_schemaCodePath, {
+        encoding: 'utf-8',
+        recursive: true
+      })
+      const fileNames = files.map((item) => {
+        return item.replace('.ts', '')
+      })
+      genSchemaIndex(prefix, _schemaCodePath, functionMap)
+      event.reply('api-generator-reply', { success: true, result: fileNames })
+    } catch (e) {
+      event.reply('api-generator-reply', { success: false, message: (e as any).message })
     }
   })
 }
@@ -56,4 +77,4 @@ function getFolder() {
   })
 }
 
-export { graphqlGenerator, getFolder }
+export { graphqlGenerator, getFolder, apiGenerator }
