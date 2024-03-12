@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MonacoEditor } from '@/components/ui/monaco-editor'
 import sample from './sample.json'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
@@ -39,24 +39,10 @@ export default function FormatJson() {
   const handleToYaml = () => {
     if (!value) return setFormatValue('')
     try {
-      const result = JSON.parse(value)
-      fetch('/api/yaml', {
-        method: 'POST',
-        body: JSON.stringify({ jsonDocument: result }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      const jsonDocument = JSON.parse(value)
+      window.electron.ipcRenderer.send('json2yaml', {
+        jsonDocument
       })
-        .then((res) => {
-          if (res.ok) {
-            return res.json()
-          }
-          throw new Error('转换失败')
-        })
-        .then((data) => {
-          setLanguage('yaml')
-          setFormatValue(data.result)
-        })
     } catch (e) {
       setFormatValue((e as Error).message)
     }
@@ -65,24 +51,10 @@ export default function FormatJson() {
   const handleToXml = () => {
     if (!value) return setFormatValue('')
     try {
-      const result = JSON.parse(value)
-      fetch('/api/xml', {
-        method: 'POST',
-        body: JSON.stringify({ jsonDocument: result }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      const jsonDocument = JSON.parse(value)
+      window.electron.ipcRenderer.send('json2xml', {
+        jsonDocument
       })
-        .then((res) => {
-          if (res.ok) {
-            return res.json()
-          }
-          throw new Error('转换失败')
-        })
-        .then((data) => {
-          setLanguage('xml')
-          setFormatValue(data.result)
-        })
     } catch (e) {
       setFormatValue((e as Error).message)
     }
@@ -102,10 +74,34 @@ export default function FormatJson() {
     })
   }
 
+  useEffect(() => {
+    window.electron.ipcRenderer.on('json2xml-reply', (_, arg) => {
+      if (arg.success) {
+        setLanguage('xml')
+        setFormatValue(arg.result)
+      } else {
+        setFormatValue(arg.message)
+      }
+    })
+
+    window.electron.ipcRenderer.on('json2yaml-reply', (_, arg) => {
+      if (arg.success) {
+        setLanguage('yaml')
+        setFormatValue(arg.result)
+      } else {
+        setFormatValue(arg.message)
+      }
+    })
+    return () => {
+      window.electron.ipcRenderer.removeAllListeners('json2xml-reply')
+      window.electron.ipcRenderer.removeAllListeners('json2yaml-reply')
+    }
+  }, [])
+
   return (
     <>
       <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel maxSize={50} minSize={50}>
+        <ResizablePanel defaultSize={50}>
           <div className="flex w-full gap-2 items-center">
             <Button onClick={() => setValue('')} variant="secondary">
               清空
@@ -139,8 +135,8 @@ export default function FormatJson() {
           />
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel maxSize={50} minSize={50} className="pl-4 pr-4">
-          <div className="flex w-full gap-2 items-center mb-2">
+        <ResizablePanel className="pl-4 pr-4">
+          <div className="flex w-full gap-2 items-center">
             <Button onClick={handleCopy} variant="secondary">
               复制
             </Button>
@@ -149,7 +145,7 @@ export default function FormatJson() {
             <GridView value={value ? JSON.parse(value) : ''} />
           </div>
           <div hidden={language === 'grid'}>
-            <MonacoEditor value={formatValue} language={language} />
+            <MonacoEditor className="mt-2" value={formatValue} language={language} />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
