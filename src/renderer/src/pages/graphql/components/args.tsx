@@ -109,7 +109,7 @@ export function Args({
   }, [JSON.stringify(dataSource)])
 
   return (
-    <Card className="w-[350px]">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>入参参数</CardTitle>
       </CardHeader>

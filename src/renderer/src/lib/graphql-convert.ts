@@ -5,6 +5,7 @@ import * as prettierPluginBabel from 'prettier/plugins/babel'
 import * as prettierPluginTypescript from 'prettier/plugins/typescript'
 import * as prettierPluginEstree from 'prettier/plugins/estree'
 import { Options } from 'prettier'
+import forEach from 'lodash/forEach'
 type Item = {
   name: string
   description?: string | null
@@ -32,10 +33,11 @@ export const loopTree2String = (tree: TreeItem[]) => {
 
 export const loopGraphQLFieldMap2Tree = (
   fields?: GraphQLFieldMap<any, any>,
-  filter?: {
+  selected?: {
     [key: string]: {
       checked: boolean
       value: string
+      key: string
       alias?: string
     }
   }
@@ -44,30 +46,38 @@ export const loopGraphQLFieldMap2Tree = (
     return []
   }
   const result: TreeItem[] = []
-  for (const key in fields) {
-    if (filter?.[key]?.checked) {
-      const field = fields[key]
-      const childrenFields = getFields(field)
-      if (childrenFields) {
-        const item: TreeItem = {
-          name: filter[key].alias ? `${filter[key].alias}:${key}` : key,
-          description: field.description,
-          children: loopGraphQLFieldMap2Tree(childrenFields, filter)
-        }
-        result.push(item)
-      } else {
-        const item: TreeItem = {
-          name: filter[key].alias ? `${filter[key].alias}:${key}` : key,
-          description: field.description
-        }
-        result.push(item)
-      }
+
+  forEach(selected, (item) => {
+    const field = fields[item.value]
+    if (!field) {
+      return
     }
-  }
+    const childrenFields = getFields(field)
+    if (childrenFields) {
+      const childrenSelected = {}
+      forEach(selected, (child) => {
+        if ((child.key as string).startsWith(item.key)) {
+          childrenSelected[child.key] = child
+        }
+      })
+      const _item: TreeItem = {
+        name: item.alias ? `${item.alias}:${item.value}` : item.value,
+        description: field.description,
+        children: loopGraphQLFieldMap2Tree(childrenFields, childrenSelected)
+      }
+      result.push(_item)
+    } else {
+      const _item: TreeItem = {
+        name: item.alias ? `${item.alias}:${item.value}` : item.value,
+        description: field.description
+      }
+      result.push(_item)
+    }
+  })
   return result
 }
 
-interface TreeDataItem {
+export interface TreeDataItem {
   title: string
   value: string
   description: string

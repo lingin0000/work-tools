@@ -17,14 +17,4 @@ export const menu: SidebarNavProps['groups'] = [
       }
     ]
   }
-  // {
-  //   title: "知识点",
-  //   items: [
-  //     {
-  //       title: "design-pattern",
-  //       href: "/design-pattern",
-  //       icon: LucideDivideSquare,
-  //     },
-  //   ],
-  // },
 ]

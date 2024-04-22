@@ -70,6 +70,7 @@ export function GenCode({
       checked: boolean
       value: string
       alias?: string
+      key: string
     }
   }>({})
 
@@ -101,7 +102,7 @@ export function GenCode({
     const { args, fields } = getArgAndFields()
     let _code = `import { gql } from "${config?.gql}";\n\n`
     if (type === 'query') {
-      const { query, code } = queryTemplate(functionName, args, fields)
+      const { query, code } = queryTemplate(functionName, args, fields || [])
       _code += code
       try {
         const _typesCode = await genType({
@@ -119,7 +120,7 @@ export function GenCode({
       }
     }
     if (type === 'mutation') {
-      const { mutation, code } = mutationTemplate(functionName, args, fields)
+      const { mutation, code } = mutationTemplate(functionName, args, fields || [])
 
       _code += code
       try {
@@ -178,7 +179,9 @@ export function GenCode({
 
   const handleAddGqlList = () => {
     const { fields, args } = getArgAndFields()
-    const gqlFragment = loopTree2String(fields)
+    const gqlFragment = loopTree2String(fields || [])
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     setFragments((prev) => {
       return [
         ...prev,
@@ -224,17 +227,18 @@ export function GenCode({
             添加到列表
           </Button>
         </div>
-        <div className="flex gap-4 mb-4 mt-4">
+        <div className="flex gap-4 mb-4 mt-4 flex-col">
           <Args dataSource={graphQLFieldData?.args} type={type} form={form} />
           <Fields
             dataSource={loopGraphQLFieldMap2TreeData(graphQLFieldData?.fields)}
             onChange={(data) => {
               const _selectedFields = data.reduce(
                 (acc, cur) => {
-                  acc[cur.value] = {
+                  acc[cur.key] = {
                     checked: true,
                     value: cur.value,
-                    alias: cur.alias
+                    alias: cur.alias,
+                    key: cur.key
                   }
                   return acc
                 },
@@ -243,6 +247,7 @@ export function GenCode({
                     checked: boolean
                     value: string
                     alias?: string
+                    key: string
                   }
                 }
               )

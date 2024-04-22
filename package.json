@@ -1,7 +1,7 @@
 {
-  "name": "work-tools",
+  "name": "platypus",
   "version": "1.0.2",
-  "description": "An Electron application with React and TypeScript",
+  "description": "A modern Electron app template with Vite, React, and TypeScript",
   "main": "./out/main/index.js",
   "author": "sunyl",
   "homepage": "https://electron-vite.org",

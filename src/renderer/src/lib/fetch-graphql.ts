@@ -102,7 +102,9 @@ class RequestGraphql {
           case 'Query':
           case 'Mutation':
             /** 合并Query Mutation 里面的fields，并去重 */
+            // eslint-disable-next-line no-case-declarations
             const existItem = result[existIndex] as IntrospectionObjectType
+            // eslint-disable-next-line no-case-declarations
             const curItem = item as IntrospectionObjectType
             result[existIndex] = {
               ...item,

@@ -8,12 +8,9 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/provider/theme-provider'
 import { menu } from '@/lib/menu'
+import { Outlet } from '@tanstack/react-router'
 
-export default function RootLayout({
-  children
-}: Readonly<{
-  children: React.ReactNode
-}>): JSX.Element {
+export default function RootLayout() {
   const [collapsed, setCollapsed] = useState(false)
   return (
     <html lang="en">
@@ -43,7 +40,9 @@ export default function RootLayout({
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={90}>
-                <ScrollArea className="h-screen p-4">{children}</ScrollArea>
+                <ScrollArea className="h-screen p-4">
+                  <Outlet />
+                </ScrollArea>
               </ResizablePanel>
             </ResizablePanelGroup>
           </TooltipProvider>

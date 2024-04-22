@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { graphqlGenerator, getFolder, apiGenerator } from './graphql-ipc'
 import { json2xml, json2yaml } from './json-pic'
+import { openBrowser } from './open-browser'
 
 function createWindow(): void {
   // Create the browser window.
@@ -67,6 +68,7 @@ app.whenReady().then(() => {
   graphqlGenerator()
   json2xml()
   json2yaml()
+  openBrowser()
 
   createWindow()
 

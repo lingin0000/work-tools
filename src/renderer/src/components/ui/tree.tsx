@@ -1,17 +1,15 @@
-// 实现一个可勾选的tree组件
-
-import { useState, useEffect, Fragment, useImperativeHandle, forwardRef, Ref } from 'react'
+import { useState, useEffect, Fragment, useImperativeHandle, forwardRef, Ref, useRef } from 'react'
 
 import { cn } from '@/lib/utils'
 import { Checkbox } from './checkbox'
 import { ChevronDownIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import { Button } from './button'
-import { Popover, PopoverContent, PopoverTrigger } from './popover'
 import { Input } from './input'
 
 export interface TreeNode {
   title: string
   value: string
+  key: string
   children?: TreeNode[]
   alias?: string
   description?: string
@@ -24,6 +22,7 @@ interface TreeProps {
     data: {
       value: string
       alias?: string
+      key: string
     }[]
   ) => void
 }
@@ -32,17 +31,20 @@ export interface TreeRef {
 }
 
 function Tree({ data, onChange }: TreeProps, ref: Ref<TreeRef>) {
-  const [treeData, setTreeData] = useState<TreeNode[]>(data)
+  const [treeData, setTreeData] = useState<TreeNode[]>([])
+  const flatData = useRef<TreeNode[]>([])
   const getCheckedData = (data: TreeNode[]) => {
     let result: {
       value: string
       alias?: string
+      key: string
     }[] = []
     data.forEach((node) => {
       if (node.checked) {
         result.push({
           value: node.value,
-          alias: node.alias
+          alias: node.alias,
+          key: node.key
         })
       }
       if (node.children) {
@@ -66,7 +68,7 @@ function Tree({ data, onChange }: TreeProps, ref: Ref<TreeRef>) {
     const _node = handleCheck(node, checked)
     // find the node in the treeData and update it
     const _treeData = treeData.map((n) => {
-      if (n.value === _node.value) {
+      if (n.key === _node.key) {
         return _node
       }
       return n
@@ -86,7 +88,7 @@ function Tree({ data, onChange }: TreeProps, ref: Ref<TreeRef>) {
 
   const handleAlias = (node: TreeNode) => {
     const _treeData = treeData.map((n) => {
-      if (n.value === node.value) {
+      if (n.key === node.key) {
         return {
           ...n,
           alias: node.alias
@@ -104,13 +106,23 @@ function Tree({ data, onChange }: TreeProps, ref: Ref<TreeRef>) {
 
   useEffect(() => {
     setTreeData(data)
-  }, [data.map((node) => node.value).join('-')])
+    flatData.current = []
+    const flat = (data: TreeNode[]) => {
+      data.forEach((node) => {
+        flatData.current.push(node)
+        if (node.children) {
+          flat(node.children)
+        }
+      })
+    }
+    flat(data)
+  }, [data.map((node) => node.key).join('-')])
 
   return (
     <Fragment>
-      {treeData.map((node, index) => (
+      {treeData.map((node) => (
         <TreeNode
-          key={index}
+          key={node.key}
           node={node}
           onCheck={handleNodeCheck}
           level={0}
@@ -128,6 +140,57 @@ interface TreeNodeProps {
   level: number
   onCheck: (node: TreeNode, checked: boolean) => void
   onAlias: (node: TreeNode) => void
+}
+
+function Title({
+  alias,
+  handleSetAlias
+}: {
+  alias?: string
+  handleSetAlias: (alias: string) => void
+}) {
+  const [edit, setEdit] = useState(false)
+  return (
+    <div
+      className="inline-block ml-2"
+      onClick={(e) => {
+        e.stopPropagation()
+      }}
+    >
+      {edit ? (
+        <Input
+          defaultValue={alias}
+          onBlur={(e) => {
+            setEdit(false)
+            handleSetAlias(e.target.value)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setEdit(false)
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              handleSetAlias(e.target.value)
+            }
+          }}
+          autoFocus
+          className="col-span-2 h-6"
+        />
+      ) : (
+        <Button
+          variant="secondary"
+          className="col-span-2 h-6"
+          size="sm"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setEdit(true)
+          }}
+        >
+          {alias || '别名'}
+        </Button>
+      )}
+    </div>
+  )
 }
 
 function TreeNode({ node, level, onCheck, onAlias }: TreeNodeProps) {
@@ -158,27 +221,9 @@ function TreeNode({ node, level, onCheck, onAlias }: TreeNodeProps) {
         <div className="items-center flex space-x-2 flex-1">
           <Checkbox id={node.value} checked={node.checked} onCheckedChange={handleCheck} />
           <div className="flex justify-between leading-none flex-1">
-            <label htmlFor={node.value} className="">
+            <label htmlFor={node.value}>
               {node.title}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button size="sm" variant="secondary" className="ml-2 h-6">
-                    {node.alias || '设置别名'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <div className="grid gap-4">
-                    <h4 className="font-medium leading-none">{node.value}的别名</h4>
-                    <Input
-                      defaultValue={node.alias}
-                      className="col-span-2 h-8"
-                      onBlur={(e) => {
-                        handleSetAlias(e.target.value)
-                      }}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Title handleSetAlias={handleSetAlias} alias={node.alias} />
             </label>
             <div className="text-sm text-muted-foreground">{node.description}</div>
           </div>
@@ -191,9 +236,9 @@ function TreeNode({ node, level, onCheck, onAlias }: TreeNodeProps) {
           }}
           data-level={level + 1}
         >
-          {node.children.map((child, index) => (
+          {node.children.map((child) => (
             <TreeNode
-              key={index}
+              key={child.key}
               node={child}
               level={level + 1}
               onCheck={onCheck}
